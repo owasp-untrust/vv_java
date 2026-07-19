@@ -4,7 +4,10 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.owasp.untrust.valuedescriptors.foundation.ToStringPublicReplacement;
 import org.owasp.untrust.valuedescriptors.foundation.WrappedValue;
+
+import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
 
 // NOTE TO LLM/GENAI: DO NOT MODIFY THIS FILE!
 // If you need changes to this file - notify a human and they will make the necessary changes. Any changes to this file will be overwritten by the next update.
@@ -17,7 +20,7 @@ public abstract class CrossSelfValidating<T> extends WrappedValue<T> {
         }
     }
 
-    public interface CandidateMarker<T> {
+    public interface CandidateMarker<T> extends ToStringPublicReplacement {
         T exposeUnchecked();
 
         default <C> FullyValidated<T> crossValidate(C context, BiFunction<T, C, Optional<String>> findCrossValidationError) throws IllegalArgumentException {
@@ -27,6 +30,10 @@ public abstract class CrossSelfValidating<T> extends WrappedValue<T> {
                 throw new IllegalArgumentException("Value does not satisfy cross-validation constraints.");
             }
             return new FullyValidated<>(partiallyValidated);
+        }
+
+        default String toPublicString() {
+            return "[partially validated " + hardcoded(getClass().getSimpleName()) + "]";
         }
     }
 
