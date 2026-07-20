@@ -12,6 +12,10 @@ public final class EncryptedPii<T> implements Pii<T> {
         this.iv = Objects.requireNonNull(iv).clone();
     }
 
+    public T exposeUnchecked() {
+        throw new UnsupportedOperationException("Cannot expose encrypted PII without decryption");
+    }
+
     public byte[] ciphertext() {
         return ciphertext.clone();
     }

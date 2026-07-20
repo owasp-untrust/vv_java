@@ -2,7 +2,7 @@ package org.owasp.untrust.vv.pii;
 
 import java.util.Objects;
 
-public final class HashingPendingPii<T> implements Pii<T> {
+public final class HashingPendingPii<T> implements PendingPii<T> {
     private final T value;
     private final PiiHasher<T> hasher;
 

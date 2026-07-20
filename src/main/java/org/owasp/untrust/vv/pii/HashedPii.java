@@ -10,6 +10,10 @@ public final class HashedPii<T> implements Pii<T> {
         this.hash = Objects.requireNonNull(hash).clone();
     }
 
+    public T exposeUnchecked() {
+        throw new UnsupportedOperationException("Cannot expose encrypted PII without decryption");
+    }
+
     public byte[] hash() {
         return hash.clone();
     }
