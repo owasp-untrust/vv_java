@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.owasp.untrust.valuedescriptors.foundation.WrappedValue;
+import org.owasp.untrust.valuedescriptors.foundation.ExposableWrappedValue;
 import org.owasp.untrust.vv.exceptions.ValidationException;
 
 import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
@@ -18,7 +18,7 @@ import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
 public abstract class ValidatedValue<
         T, 
         Traits extends ValidationTraits<T>
-> extends WrappedValue<T> {    
+> extends ExposableWrappedValue<T> {    
     public static class AlreadyParsedMarker { };
     public static AlreadyParsedMarker ALREADY_PARSED = new AlreadyParsedMarker();
 

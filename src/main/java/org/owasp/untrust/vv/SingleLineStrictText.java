@@ -1,12 +1,12 @@
 package org.owasp.untrust.vv;
 
 import org.owasp.untrust.valuedescriptors.Hardcoded;
-import org.owasp.untrust.valuedescriptors.foundation.PubliclyViewable;
+import org.owasp.untrust.valuedescriptors.foundation.PubliclyExposed;
 import org.owasp.untrust.vv.exceptions.ValidationException;
 import org.owasp.untrust.vv.foundation.ValidatedValue;
 import org.owasp.untrust.vv.traits.LineTextTraits;
 
-public final class SingleLineStrictText extends ValidatedValue<String, SingleLineStrictText.Traits> implements PubliclyViewable<String> {
+public final class SingleLineStrictText extends ValidatedValue<String, SingleLineStrictText.Traits> implements PubliclyExposed<String> {
     public SingleLineStrictText(String raw) throws ValidationException {
         super(raw, new Traits());
     }

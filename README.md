@@ -21,6 +21,15 @@ dependencies {
 }
 ```
 
+Spring-specific adapters live in a separate optional module so the core
+validated-value library does not depend on Spring:
+
+```kotlin
+dependencies {
+    implementation("org.owasp.untrust:vv_spring:0.1.0")
+}
+```
+
 For local development before all libraries are published:
 
 ```kotlin
@@ -38,6 +47,10 @@ includeBuild("../ValueDescriptors")
 - SLF4J API
 - Spring Security core
 - Jakarta Servlet API
+
+Optional `vv_spring` module:
+
+- Spring Vault Core
 
 Build:
 

@@ -8,7 +8,7 @@ import org.owasp.untrust.vv.traits.RareTraitsCaseWhereParsingIsTheWholeValidatio
 import org.owasp.untrust.buildmetadata.NonFinalValidatedValue;
 import org.owasp.untrust.buildmetadata.StringConcatenationSafe;
 import org.owasp.untrust.valuedescriptors.Hardcoded;
-import org.owasp.untrust.valuedescriptors.foundation.PubliclyViewable;
+import org.owasp.untrust.valuedescriptors.foundation.PubliclyExposed;
 
 import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
 
@@ -18,7 +18,7 @@ import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
 // there should (normally) be no limitation on uuid range when used as an id.
 @StringConcatenationSafe("UUIDs have a fixed format and length, so concatenation won't cause issues.")
 @NonFinalValidatedValue("All validated values that have a uuid type (basically all id types) can use a common ancestor since they all validate only to the extent of parsing - there should (normally) be no limitation on uuid range when used as an id.")
-public class ViewableUuidValue extends ValidatedValue<UUID, ViewableUuidValue.Traits> implements PubliclyViewable<UUID> {
+public class ViewableUuidValue extends ValidatedValue<UUID, ViewableUuidValue.Traits> implements PubliclyExposed<UUID> {
     public ViewableUuidValue(String raw) throws ValidationException {
         super(raw, new Traits());
     }

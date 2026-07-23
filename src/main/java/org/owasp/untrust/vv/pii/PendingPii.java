@@ -1,8 +1,8 @@
 package org.owasp.untrust.vv.pii;
 
-import org.owasp.untrust.valuedescriptors.foundation.ToStringPublicReplacement;
+import org.owasp.untrust.valuedescriptors.foundation.PubliclyRepresentable;
 
-public interface PendingPii<T> extends ToStringPublicReplacement {
+public interface PendingPii<T> extends PubliclyRepresentable {
     String PUBLIC_REPLACEMENT = "[pending pii]";
 
     @Override
