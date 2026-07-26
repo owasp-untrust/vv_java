@@ -1,11 +1,11 @@
-package org.owasp.untrust.vv.examples;
+package org.owasp.untrust.vv.prebuilt;
 
-import org.owasp.untrust.vv.visibility.secret.SecretValue;
-import org.owasp.untrust.vv.visibility.secret.SecretValueInitializer;
 import org.owasp.untrust.vv.visibility.secret.SecretReference;
 import org.owasp.untrust.vv.visibility.secret.SecretStore;
+import org.owasp.untrust.vv.visibility.secret.SecretValue;
+import org.owasp.untrust.vv.visibility.secret.SecretValueInitializer;
 
-public final class ApiKey extends SecretValue<String> {
+public class ApiKey extends SecretValue<String> {
     public ApiKey(SecretValueInitializer<String, ApiKey> initializer) {
         super(initializer);
     }

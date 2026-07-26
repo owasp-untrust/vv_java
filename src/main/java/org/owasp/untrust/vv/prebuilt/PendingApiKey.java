@@ -1,25 +1,23 @@
-package org.owasp.untrust.vv.examples;
+package org.owasp.untrust.vv.prebuilt;
 
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import org.owasp.untrust.valuedescriptors.Hardcoded;
 import org.owasp.untrust.vv.foundation.SelfValidating;
 import org.owasp.untrust.vv.traits.RegexStringTraits;
 import org.owasp.untrust.vv.visibility.secret.PendingSecret;
-import org.owasp.untrust.vv.visibility.secret.SecretReference;
-import org.owasp.untrust.vv.visibility.secret.SecretStore;
-import org.owasp.untrust.valuedescriptors.Hardcoded;
 
 import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
 
-public final class PendingApiKey
+public class PendingApiKey
         implements PendingSecret<String, ApiKey>, SelfValidating<String> {
+    private static final int DISPLAY_SUFFIX_LENGTH = 4;
 
     private final String m_value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    private PendingApiKey(String raw) {
-        //super(raw, new Traits());
+    protected PendingApiKey(String raw) {
         this.m_value = validate(raw, new Traits());
     }
 
@@ -27,8 +25,16 @@ public final class PendingApiKey
         return new PendingApiKey(raw);
     }
 
-    // package private - needed by ApiKey for revalidation
-    static final class Traits extends RegexStringTraits {
+    public String displayValue() {
+        return "****" + suffix();
+    }
+
+    public String suffix() {
+        int start = Math.max(0, m_value.length() - DISPLAY_SUFFIX_LENGTH);
+        return m_value.substring(start);
+    }
+
+    public static class Traits extends RegexStringTraits {
         private static final Pattern API_KEY =
                 Pattern.compile("[A-Za-z0-9_\\-]{20,512}");
 

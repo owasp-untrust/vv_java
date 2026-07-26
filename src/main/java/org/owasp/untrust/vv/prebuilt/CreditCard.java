@@ -1,4 +1,4 @@
-package org.owasp.untrust.vv.examples;
+package org.owasp.untrust.vv.prebuilt;
 
 import java.util.Optional;
 

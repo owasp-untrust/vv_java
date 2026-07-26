@@ -52,6 +52,93 @@ Optional `vv_spring` module:
 
 - Spring Vault Core
 
+## Prebuilt Values
+
+The `org.owasp.untrust.vv.prebuilt` package contains reusable validated values
+that are production-ready enough to use directly when their policy matches your
+domain:
+
+- `PendingApiKey`
+- `ApiKey`
+- `CreditCard`
+
+Use these instead of copying example code when the built-in validation and
+public rendering match the application requirement.
+
+## Secret Values And `vv_spring`
+
+The core `vv` module contains the generic secret-value model. The optional
+`vv_spring` module supplies a Spring Vault-backed `SecretStore<String>` adapter.
+Use this split when an application wants route-bound secret values without
+making the core validation library depend on Spring.
+
+`PendingApiKey` and `ApiKey` in `org.owasp.untrust.vv.prebuilt` provide the
+standard API-key shape:
+
+- `PendingApiKey` represents the untrusted route/binding value.
+- `PendingApiKey.from(String)` supports framework deserialization from a raw
+  string.
+- `PendingApiKey` validates the raw API key and implements `PendingSecret`.
+- Calling the inherited pending-secret `hide(...)` method creates a
+  `SecretValueInitializer`.
+- `ApiKey` extends `SecretValue<String>` and accepts that initializer in its
+  constructor.
+- `ApiKey` stores only the secret reference/display value pair as its public
+  object state. Reading the actual secret goes through the configured
+  `SecretStore<String>`.
+
+With Spring Vault:
+
+```java
+import org.owasp.untrust.vv.prebuilt.ApiKey;
+import org.owasp.untrust.vv.prebuilt.PendingApiKey;
+import org.owasp.untrust.vv.visibility.secret.SecretReference;
+import org.owasp.untrust.vv.visibility.secret.SecretValueInitializer;
+import org.owasp.untrust.vv.visibility.secret.vault.SpringVaultStringSecretStore;
+import org.springframework.vault.core.VaultOperations;
+
+public final class AiCredentialService {
+    private final SpringVaultStringSecretStore secretStore;
+
+    public AiCredentialService(VaultOperations vaultOperations) {
+        this.secretStore = new SpringVaultStringSecretStore(
+                vaultOperations,
+                "secret");
+    }
+
+    public ApiKey storeUserApiKey(
+            SecretReference reference,
+            PendingApiKey pendingApiKey,
+            String displayValue) {
+
+        SecretValueInitializer<String, ApiKey> initializer =
+                pendingApiKey.hide(
+                        secretStore,
+                        reference,
+                        displayValue);
+
+        return new ApiKey(initializer);
+    }
+}
+```
+
+In application code, use `PendingApiKey` directly when all configured AI
+providers accept the same key character policy. If a provider needs stricter
+rules, create a small route-specific subclass or sibling pending type and keep
+the final stored value as `ApiKey`.
+If the UI needs a masked suffix such as `****1234`, compute it in the
+domain-specific pending type or the immediate route/service boundary before
+calling `hide(...)`; do not expose the raw secret again later merely to create a
+display value.
+
+Avoid:
+
+- returning the full API key from any HTTP response;
+- logging the full API key;
+- storing the raw API key in ordinary application DTOs;
+- passing a primitive `String` API key through service layers after binding;
+- putting Spring Vault dependencies in the core `vv` module.
+
 Build:
 
 ```powershell
