@@ -5,34 +5,34 @@ import java.util.Optional;
 
 import com.ibm.icu.text.BreakIterator;
 import com.ibm.icu.text.UnicodeSet;
+import org.owasp.untrust.buildmetadata.StringConcatenationSafe;
 import org.owasp.untrust.valuedescriptors.Hardcoded;
 import org.owasp.untrust.vv.exceptions.ValidationException;
-import org.owasp.untrust.vv.foundation.ValidationTraits;
 
-public abstract class LineTextTraits implements ValidationTraits<String> {
+import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
+
+@StringConcatenationSafe("Line text validation messages and descriptions are assembled from fixed developer-authored fragments and Hardcoded labels. The user supplied text remains separate structured ValidationException data and is not embedded in the message.")
+public abstract class LineTextTraits extends BoundedAnyContentStringTraits {
     private static final UnicodeSet RGI_EMOJI = new UnicodeSet("[:RGI_Emoji:]").freeze();
 
     public abstract boolean allowNewlines();
+
     public abstract boolean allowEmoji();
+
     public abstract boolean requirePathSafeText();
 
     @Override
-    public String parse(String raw) throws IllegalArgumentException {
-        return raw;
-    }
-
-    @Override
-    public final String normalize(String parsed) throws ValidationException {
-        return Normalizer.normalize(parsed, Normalizer.Form.NFC);
-    }
-
-    @Override
-    public Optional<ValidationException> findValidationProblemInRaw(String raw) {
-        return Optional.empty();
+    protected final String normalizeReformattedString(String reformatted) {
+        return Normalizer.normalize(reformatted, Normalizer.Form.NFC);
     }
 
     @Override
     public final Optional<ValidationException> findValidationProblemInNormalizedValue(String normalized) {
+        Optional<ValidationException> boundedProblem = super.findValidationProblemInNormalizedValue(normalized);
+        if (boundedProblem.isPresent()) {
+            return boundedProblem;
+        }
+
         if (requirePathSafeText()) {
             Optional<ValidationException> pathProblem = findPathSafeTextProblem(normalized);
             if (pathProblem.isPresent()) {
@@ -49,7 +49,7 @@ public abstract class LineTextTraits implements ValidationTraits<String> {
             if (!isAllowedCluster(cluster)) {
                 return Optional.of(new ValidationException(
                         normalized,
-                        descriptionInErrors() + ": Value contains a disallowed character or emoji sequence.",
+                        descriptionInErrors().concat(hardcoded(": Value contains a disallowed character or emoji sequence.")).value(),
                         Optional.empty()));
             }
         }
@@ -117,15 +117,11 @@ public abstract class LineTextTraits implements ValidationTraits<String> {
                 || type == Character.INITIAL_QUOTE_PUNCTUATION
                 || type == Character.FINAL_QUOTE_PUNCTUATION
                 || type == Character.OTHER_PUNCTUATION
-                || isAllowedSymbol(codePoint, type);
+                || isAllowedSymbol(type);
     }
 
-    private boolean isAllowedSymbol(int codePoint, int type) {
-        if (type != Character.MATH_SYMBOL && type != Character.CURRENCY_SYMBOL) {
-            return false;
-        }
-
-        return !requirePathSafeText() || codePoint < 128;
+    private boolean isAllowedSymbol(int type) {
+        return type == Character.MATH_SYMBOL || type == Character.CURRENCY_SYMBOL;
     }
 
     private Optional<ValidationException> findPathSafeTextProblem(String normalized) {
@@ -134,7 +130,7 @@ public abstract class LineTextTraits implements ValidationTraits<String> {
             if (segment.equals(".") || segment.equals("..")) {
                 return Optional.of(new ValidationException(
                         normalized,
-                        descriptionInErrors() + ": Path segments must not be '.' or '..'.",
+                        descriptionInErrors().concat(hardcoded(": Path segments must not be '.' or '..'.")).value(),
                         Optional.empty()));
             }
         }

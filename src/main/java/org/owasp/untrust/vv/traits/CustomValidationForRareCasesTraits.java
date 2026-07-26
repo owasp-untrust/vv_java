@@ -6,19 +6,22 @@ import org.owasp.untrust.vv.exceptions.ValidationException;
 import org.owasp.untrust.vv.foundation.ValidationTraits;
 
 public abstract class CustomValidationForRareCasesTraits<T> implements ValidationTraits<T> {
-    public static record Bounds(int min, int max, String message) { }
+    public record Bounds(int minimum, int maximum, String message) {
+    }
 
     public abstract Bounds rawBounds();
-    
+
     @Override
     public Optional<ValidationException> findValidationProblemInRaw(String raw) {
         Bounds bounds = rawBounds();
-        if (raw.length() < bounds.min()) {
-            return Optional.of(new ValidationException(raw, bounds.message, bounds.min()));
+        if (raw.length() < bounds.minimum()) {
+            return Optional.of(new ValidationException(raw, bounds.message(), bounds.minimum()));
         }
-        if (raw.length() > bounds.max()) {
-            return Optional.of(new ValidationException(raw, bounds.message, bounds.max()));
+
+        if (raw.length() > bounds.maximum()) {
+            return Optional.of(new ValidationException(raw, bounds.message(), bounds.maximum()));
         }
+
         return Optional.empty();
     }
 }
