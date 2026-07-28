@@ -5,7 +5,7 @@ import org.owasp.untrust.vv.foundation.SelfValidating;
 // ReceiverOfInitializer ensures that an initializer emitted by a PendingX is used on
 // a SecretX and not on a SecretY. 
 // This is a compile-time check that prevents accidental misuse of initializers.
-public final class SecretValueInitializer<T, ReceiverOfInitializer> {
+public class SecretValueInitializer<T, ReceiverOfInitializer> {
     private final SecretStore<T> store;
     private final SecretReference reference;
     private final String displayValue;

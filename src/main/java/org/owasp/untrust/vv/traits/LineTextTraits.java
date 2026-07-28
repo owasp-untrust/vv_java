@@ -54,8 +54,10 @@ public abstract class LineTextTraits extends BoundedAnyContentStringTraits {
             }
         }
 
-        return Optional.empty();
+        return findExtraValidationProblemInLineText(normalized);
     }
+
+    protected abstract Optional<ValidationException> findExtraValidationProblemInLineText(String normalized);
 
     private boolean isAllowedCluster(String cluster) {
         if (allowEmoji() && RGI_EMOJI.contains(cluster)) {

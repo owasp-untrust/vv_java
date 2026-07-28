@@ -3,6 +3,7 @@ package org.owasp.untrust.vv.examples;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import org.owasp.untrust.buildmetadata.NonFinalValidatedValue;
 import org.owasp.untrust.vv.foundation.CrossValidatedReceiver;
 import org.owasp.untrust.vv.foundation.CrossValidationCandidate;
 import org.owasp.untrust.vv.foundation.ValidatedWrappedValue;
@@ -21,7 +22,8 @@ public abstract class UsernameBase<ReceiverOfValidated extends UsernameBase<Rece
         super(opaqueValue);
     }
 
-    public static class CandidateBase<ReceiverOfValidated extends UsernameBase<ReceiverOfValidated>>
+    @NonFinalValidatedValue("This shared candidate base owns the common username syntax validation and cross-validation conversion used by distinct existing and registration username flows without changing its validation contract.")
+    public abstract static class CandidateBase<ReceiverOfValidated extends UsernameBase<ReceiverOfValidated>>
             extends ValidatedWrappedValue<String> 
             implements MiddleMaskedValue,
                     CrossValidationCandidate<String, ReceiverOfValidated> {
@@ -45,7 +47,7 @@ public abstract class UsernameBase<ReceiverOfValidated extends UsernameBase<Rece
 
     private static final class Traits extends RegexStringTraits {
         private static final Pattern USERNAME =
-                Pattern.compile("[A-Za-z0-9._-]{1,80}");
+                Pattern.compile("[A-Za-z]([A-Za-z0-9._-]*[A-Za-z0-9])?");
 
         @Override
         public Hardcoded descriptionInErrors() {

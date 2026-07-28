@@ -1,7 +1,6 @@
 package org.owasp.untrust.vv.visibility.secret.vault;
 
 import java.util.Map;
-import java.util.Objects;
 
 import org.owasp.untrust.vv.visibility.secret.SecretReference;
 import org.owasp.untrust.vv.visibility.secret.SecretStore;
@@ -22,9 +21,6 @@ public final class SpringVaultStringSecretStore
             VaultOperations vaultOperations,
             String mount) {
 
-        Objects.requireNonNull(vaultOperations);
-        Objects.requireNonNull(mount);
-
         this.operations = vaultOperations.opsForKeyValue(
                 mount,
                 KeyValueBackend.KV_2);
@@ -35,9 +31,6 @@ public final class SpringVaultStringSecretStore
             SecretReference reference,
             String value) {
 
-        Objects.requireNonNull(reference);
-        Objects.requireNonNull(value);
-
         operations.put(
                 reference.path(),
                 Map.of(VALUE_KEY, value));
@@ -45,11 +38,10 @@ public final class SpringVaultStringSecretStore
 
     @Override
     public String read(SecretReference reference) {
-        Objects.requireNonNull(reference);
-
         VaultResponse response =
                 operations.get(reference.path());
 
+        // ALLOW NULL LITERAL: Spring Vault represents an absent or malformed secret response with a null response or null data map. This adapter is the library boundary that translates those external nullable outcomes into SecretUnavailableException without returning null to callers.
         if (response == null || response.getData() == null) {
             throw new SecretUnavailableException(reference);
         }

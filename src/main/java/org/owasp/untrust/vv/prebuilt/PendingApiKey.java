@@ -26,7 +26,9 @@ public class PendingApiKey
     }
 
     public String displayValue() {
+        /* STRING CONCAT IS SAFE HERE: This display value intentionally combines only the fixed redaction marker with the final four characters selected by suffix(). The raw API key is never included, no user-controlled delimiter or structure is assembled, and callers need this stable masked form for configuration status displays without exposing the secret. */
         return "****" + suffix();
+        /* END STRING CONCAT */
     }
 
     public String suffix() {

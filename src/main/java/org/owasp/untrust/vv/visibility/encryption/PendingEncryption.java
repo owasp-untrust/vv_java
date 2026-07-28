@@ -4,7 +4,7 @@ import org.owasp.untrust.valuedescriptors.foundation.PubliclyRepresentable;
 import org.owasp.untrust.vv.foundation.HalfBakedExposable;
 import org.owasp.untrust.vv.foundation.SelfValidating;
 
-public final class PendingEncryption<T, V extends SelfValidating<T> & HalfBakedExposable<T>, K>
+public class PendingEncryption<T, V extends SelfValidating<T> & HalfBakedExposable<T>, K>
         implements PubliclyRepresentable {
     private final V value;
     private final PiiEncryptor<T, K> encryptor;

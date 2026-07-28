@@ -6,13 +6,13 @@ import org.apache.commons.validator.routines.CreditCardValidator;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import org.owasp.untrust.valuedescriptors.Hardcoded;
 import org.owasp.untrust.vv.exceptions.ValidationException;
-import org.owasp.untrust.vv.foundation.ValidatedWrappedValue;
+import org.owasp.untrust.vv.foundation.ExposableValidatedWrappedValue;
 import org.owasp.untrust.vv.foundation.ValidationTraits;
 import org.owasp.untrust.vv.visibility.MaskedValue;
 
 import static org.owasp.untrust.valuedescriptors.Hardcoded.hardcoded;
 
-public final class CreditCard extends ValidatedWrappedValue<String> implements MaskedValue<String> {
+public final class CreditCard extends ExposableValidatedWrappedValue<String> implements MaskedValue<String> {
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public CreditCard(String raw) {
         super(raw, new Traits());
@@ -42,7 +42,7 @@ public final class CreditCard extends ValidatedWrappedValue<String> implements M
         return toPublicString();
     }
 
-    public static final class Traits implements ValidationTraits<String> {
+    public static class Traits implements ValidationTraits<String> {
         private static final CreditCardValidator VALIDATOR = CreditCardValidator.genericCreditCardValidator(12, 19);
 
         @Override

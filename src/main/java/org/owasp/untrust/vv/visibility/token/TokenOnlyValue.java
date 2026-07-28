@@ -5,7 +5,7 @@ import org.owasp.untrust.vv.foundation.HalfBakedExposable;
 import org.owasp.untrust.vv.foundation.SelfValidating;
 import org.owasp.untrust.vv.visibility.PiiValue;
 
-public final class TokenOnlyValue<T, V extends SelfValidating<T> & HalfBakedExposable<T>>
+public class TokenOnlyValue<T, V extends SelfValidating<T> & HalfBakedExposable<T>>
         extends PiiValue<T, V>
         implements ExposableValue<T> {
     private final String token;

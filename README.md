@@ -30,6 +30,11 @@ dependencies {
 }
 ```
 
+`ConstrainedMultipartFile` is in `vv_spring`, because it wraps Spring Web's
+`MultipartFile`. It validates filename, declared content type, filename
+extension, and byte-size bounds at the route boundary. Its filename and metadata
+accessors return vv types rather than raw strings.
+
 For local development before all libraries are published:
 
 ```kotlin
@@ -211,6 +216,55 @@ taskService.createTask(taskName);
 ```
 
 Do not keep passing the original raw string deeper into the application.
+
+### Alphanumeric username with `SingleLine`
+
+Extend `SingleLine` when the value must remain a single line, and add only the
+domain-specific allow-list. The base class keeps the single-line text policy;
+the concrete value owns its bounds definition.
+
+```java
+import java.util.Optional;
+import java.util.regex.Pattern;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import org.owasp.untrust.valuedescriptors.Hardcoded;
+import org.owasp.untrust.vv.SingleLine;
+import org.owasp.untrust.vv.exceptions.ValidationException;
+import org.owasp.untrust.vv.traits.BoundedValueTraits;
+
+public class Username extends SingleLine {
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public Username(String raw) {
+        super(raw, new UsernameTraits());
+    }
+
+    public static Username from(String raw) {
+        return new Username(raw);
+    }
+
+    private static class UsernameTraits extends SingleLine.Traits {
+        private static final Pattern ALPHANUMERIC = Pattern.compile("[A-Za-z0-9]{3,32}");
+
+        @Override
+        public BoundedValueTraits.Bounds rawBounds() {
+            return new BoundedValueTraits.Bounds(3, 32);
+        }
+
+        @Override
+        protected Optional<ValidationException> findExtraValidationProblemInLineText(String value) {
+            if (ALPHANUMERIC.matcher(value).matches()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new ValidationException(
+                    value,
+                    Hardcoded.hardcoded("Username must contain only ASCII letters and digits.").value(),
+                    ALPHANUMERIC));
+        }
+    }
+}
+```
 
 ### `ValidationTraits<T>`
 

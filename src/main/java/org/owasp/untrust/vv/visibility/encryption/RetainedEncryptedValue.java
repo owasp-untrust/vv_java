@@ -8,7 +8,7 @@ import org.owasp.untrust.vv.foundation.HalfBakedExposable;
 import org.owasp.untrust.vv.foundation.SelfValidating;
 import org.owasp.untrust.vv.visibility.PiiValue;
 
-public final class RetainedEncryptedValue<T, V extends SelfValidating<T> & HalfBakedExposable<T>>
+public class RetainedEncryptedValue<T, V extends SelfValidating<T> & HalfBakedExposable<T>>
         extends PiiValue<T, V>
         implements ExposableValue<T> {
     private final byte[] ciphertext;

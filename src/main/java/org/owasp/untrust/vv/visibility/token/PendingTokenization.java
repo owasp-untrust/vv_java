@@ -4,7 +4,7 @@ import org.owasp.untrust.valuedescriptors.foundation.PubliclyRepresentable;
 import org.owasp.untrust.vv.foundation.HalfBakedExposable;
 import org.owasp.untrust.vv.foundation.SelfValidating;
 
-public final class PendingTokenization<V extends SelfValidating<T> & HalfBakedExposable<T>, T>
+public class PendingTokenization<V extends SelfValidating<T> & HalfBakedExposable<T>, T>
         implements PubliclyRepresentable {
     private final V value;
 

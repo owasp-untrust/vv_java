@@ -2,7 +2,7 @@ package org.owasp.untrust.vv.visibility;
 
 import org.owasp.untrust.valuedescriptors.foundation.ExposableValue;
 
-public final class TokenizedValue<T> implements Sensitive<T>, ExposableValue<T> {
+public class TokenizedValue<T> implements Sensitive<T>, ExposableValue<T> {
     private final T m_value;
     private final String m_replacement;
 
