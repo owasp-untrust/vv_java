@@ -30,10 +30,36 @@ dependencies {
 }
 ```
 
+`FileExtension` lives in the optional `vv_boxedpath` module because it accepts
+`BoxedPath` values as an input source:
+
+```kotlin
+dependencies {
+    implementation("org.owasp.untrust:vv_boxedpath:0.1.0")
+}
+```
+
+`vv_spring` exposes `ConstrainedMultipartFile.toFile(BoxedPath, FileExtension)`,
+so its Gradle dependency already brings `vv_boxedpath` to consumers. Add
+`vv_boxedpath` directly when application code constructs `FileExtension` or
+uses it independently of Spring uploads.
+
+`vv_httpcomponents` provides a blocking Apache HttpClient 5 transport for
+`ExternalUrl`, preserving its DNS-pinning guarantee while supporting reusable
+connections, timeouts, bounded response bodies, and safe GET/HEAD requests:
+
+```kotlin
+dependencies {
+    implementation("org.owasp.untrust:vv_httpcomponents:0.1.0")
+}
+```
+
 `ConstrainedMultipartFile` is in `vv_spring`, because it wraps Spring Web's
 `MultipartFile`. It validates filename, declared content type, filename
 extension, and byte-size bounds at the route boundary. Its filename and metadata
-accessors return vv types rather than raw strings.
+accessors return vv types rather than raw strings. `toFile(...)` writes only to
+a caller-supplied `BoxedPath`, generates a server-controlled UUID filename, and
+requires a `FileExtension` matching the validated uploaded extension.
 
 For local development before all libraries are published:
 
@@ -66,9 +92,44 @@ domain:
 - `PendingApiKey`
 - `ApiKey`
 - `CreditCard`
+- `ExternalIp`, `ExternalHost`, and `ExternalUrl`
 
 Use these instead of copying example code when the built-in validation and
 public rendering match the application requirement.
+
+`ExternalIp` accepts only literal globally routable unicast addresses.
+`ExternalHost` and `ExternalUrl` use the cross-validation model: their
+`Candidate.from(String)` types validate only syntax, and `crossValidate()`
+performs DNS resolution before returning the usable receiver value. Resolution
+rejects a host when any answer is private, loopback, link-local, multicast,
+documentation, or otherwise non-routable. `ExternalUrl` retains the original
+URI/host alongside its validated address set. An outbound client must connect
+only to that pinned set while retaining the original hostname for HTTP `Host`
+and HTTPS SNI/certificate validation. Replacing an HTTPS URL host with an IP
+by itself does not preserve that guarantee.
+
+### Cross-validation: external destinations
+
+Use a candidate while the input is only syntactically valid. Call
+`crossValidate()` at the application boundary that is allowed to perform the
+external operation, then pass only the resulting receiver to the HTTP client.
+
+```java
+ExternalHost.Candidate hostCandidate = ExternalHost.Candidate.from("www.example.com");
+ExternalHost externalHost = hostCandidate.crossValidate();
+
+ExternalUrl.Candidate urlCandidate =
+        ExternalUrl.Candidate.from("https://www.example.com/docs");
+ExternalUrl externalUrl = urlCandidate.crossValidate();
+
+ExternalUrlHttpClient.ExternalHttpResponse response = httpClient.get(externalUrl);
+```
+
+Do not store or pass an `ExternalUrl.Candidate` to a transport, service, or
+repository. It has validated URL syntax, but has not established that the host
+resolves exclusively to external addresses. Do not resolve a hostname yourself
+and construct an `ExternalUrl`; the receiver is intentionally created only by
+its candidate's `crossValidate()` method.
 
 ## Secret Values And `vv_spring`
 
@@ -169,6 +230,40 @@ The basic validation pipeline is:
 5. Store only the validated value inside the wrapper.
 
 `ValidatedValue<T, Traits>` implements this pipeline. A concrete value class supplies a `ValidationTraits<T>` implementation.
+
+### Cross-validated values
+
+Use `CrossValidationCandidate<T, Receiver>` and `CrossValidatedReceiver<T,
+Receiver>` when validation requires a second operation outside the raw input:
+a database existence check, authorization lookup, DNS resolution, or a
+trusted-service decision. The candidate validates local syntax first; its
+domain method then performs the second check and returns the receiver. This
+keeps APIs from accepting a value merely because it parsed successfully.
+
+```java
+public final class ExistingUsername extends UsernameBase<ExistingUsername> {
+    private ExistingUsername(FullyValidated<String, ExistingUsername> value) {
+        super(value);
+    }
+
+    public static final class Candidate extends CandidateBase<ExistingUsername> {
+        public static Candidate from(String raw) {
+            return new Candidate(raw);
+        }
+
+        public ExistingUsername crossValidate(UserRepository users) {
+            FullyValidated<String, ExistingUsername> value =
+                    crossValidateExists(users::existsByUsername);
+            return new ExistingUsername(value);
+        }
+    }
+}
+```
+
+The generic `CrossValidationCandidate.crossValidate(...)` helpers create the
+opaque validated handoff. A public domain candidate method must wrap that
+handoff in its receiver and return the receiver, rather than leaking
+`FullyValidated` to application code.
 
 ## Core Types
 

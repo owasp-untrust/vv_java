@@ -18,7 +18,6 @@ repositories {
 
 dependencies {
     api(project(":"))
-    api(project(":vv_boxedpath"))
-    api("org.springframework:spring-web:7.0.3")
-    api("org.springframework.vault:spring-vault-core:4.1.0")
+    implementation("org.owasp.untrust:buildmetadata:0.1.0")
+    api("io.github.owasp-untrust:untrust-boxedpath:0.3")
 }

@@ -20,8 +20,8 @@ public class RegisterUsername extends UsernameBase<RegisterUsername> {
             return new Candidate(raw);
         }
 
-        public FullyValidated<String, RegisterUsername> crossValidate(Predicate<String> exists) {
-            return crossValidateDoesNotExist(exists);
+        public RegisterUsername crossValidate(Predicate<String> exists) {
+            return new RegisterUsername(crossValidateDoesNotExist(exists));
         }
     }
 }

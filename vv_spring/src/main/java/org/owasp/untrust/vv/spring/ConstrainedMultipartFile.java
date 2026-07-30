@@ -10,12 +10,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.owasp.untrust.boxedpath.BoxedPath;
 import org.owasp.untrust.vv.UploadContentType;
 import org.owasp.untrust.vv.UploadFilename;
 import org.owasp.untrust.vv.UploadPartName;
 import org.owasp.untrust.vv.exceptions.ValidationException;
+import org.owasp.untrust.vv.prebuilt.FileExtension;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,11 +25,12 @@ import org.springframework.web.multipart.MultipartFile;
  * A validated MultipartFile boundary wrapper. MIME metadata is still declarative and must not be
  * treated as proof of the uploaded bytes' actual format.
  */
-public final class ConstrainedMultipartFile {
+public class ConstrainedMultipartFile {
     private final MultipartFile multipartFile;
     private final UploadPartName name;
     private final UploadFilename originalFilename;
     private final UploadContentType contentType;
+    private final FileExtension extension;
 
     public ConstrainedMultipartFile(
             MultipartFile multipartFile,
@@ -53,8 +56,8 @@ public final class ConstrainedMultipartFile {
         this.originalFilename = new UploadFilename(
                 requireExternalMetadata(this.multipartFile.getOriginalFilename(), "Upload filename is required."),
                 maximumFilenameLength);
-        String extension = filenameExtension(originalFilename.exposeUnchecked());
-        if (!allowedExtensionsForContentType.contains(extension)) {
+        this.extension = new FileExtension(filenameExtension(originalFilename.exposeUnchecked()));
+        if (!allowedExtensionsForContentType.contains(extension.exposeUnchecked())) {
             throw invalidUpload("Upload filename extension is not allowed for its content type.");
         }
 
@@ -67,40 +70,68 @@ public final class ConstrainedMultipartFile {
         this.contentType = new UploadContentType(rawContentType);
     }
 
-    public UploadPartName getName() {
+    public final UploadPartName getName() {
         return name;
     }
 
-    public UploadFilename getOriginalFilename() {
+    public final UploadFilename getOriginalFilename() {
         return originalFilename;
     }
 
-    public UploadContentType getContentType() {
+    public final UploadContentType getContentType() {
         return contentType;
     }
 
-    public boolean isEmpty() {
+    public final FileExtension getExtension() {
+        return extension;
+    }
+
+    public final boolean isEmpty() {
         return multipartFile.isEmpty();
     }
 
-    public long getSize() {
+    public final long getSize() {
         return multipartFile.getSize();
     }
 
-    public byte[] getBytes() throws IOException {
+    public final byte[] getBytes() throws IOException {
         return multipartFile.getBytes();
     }
 
-    public InputStream getInputStream() throws IOException {
+    // Use this method only when you need to stream the upload 
+    // content. If you need to store the upload, use  toFile() instead.
+    public final InputStream getInputStream() throws IOException {
         return multipartFile.getInputStream();
     }
 
-    public Resource getResource() {
+    public final Resource getResource() {
         return multipartFile.getResource();
     }
 
-    public void transferTo(BoxedPath destination) throws IOException {
+    // Use thie method only if you MUST have the filename saved to disk
+    // with a specific (server chosen) file name.
+    // NEVER use the original filename from the upload to determine where to store the file on disk.
+    // prefer toFile() which generates a new UUID filename and appends the validated extension.
+    public final void transferToSpecificFilename(BoxedPath destination) throws IOException {
         multipartFile.transferTo(destination);
+    }
+
+    // The following method is a safe way to store the uploaded file 
+    // to a server-controlled location. It generates a new UUID filename 
+    // and appends the validated extension, ensuring that the stored 
+    // file cannot be manipulated by the client to escape the intended 
+    // storage directory or execute unintended commands.
+    public final BoxedPath toFile(BoxedPath path, FileExtension extension) throws IOException {
+        if (!this.extension.exposeUnchecked().equals(extension.exposeUnchecked())) {
+            throw invalidUpload("Stored file extension must match the validated upload extension.");
+        }
+        /* STRING CONCAT IS SAFE HERE:
+         * The base filename is a newly generated UUID and the suffix is a validated FileExtension. Both are server-controlled values used only as one boxed-path child name. BoxedPath resolves that single child under its established sandbox, so this assembly cannot introduce parent traversal, an absolute path, a command argument, markup, or an unvalidated client filename.
+         */
+        BoxedPath destination = path.resolve(UUID.randomUUID() + extension.withDot());
+        /* END STRING CONCAT */
+        multipartFile.transferTo(destination);
+        return destination;
     }
 
     private static String requireExternalMetadata(String value, String message) {
